@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>App de Números Móvil</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 100%;
+            padding: 10px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            margin: 10px 0;
+            color: #2c3e50;
+        }
+        .panel {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .control-group {
+            display: flex;
+            flex: 1;
+            min-width: 120px;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            flex: 1;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button.secondary {
+            background-color: #2ecc71;
+        }
+        button.secondary:hover {
+            background-color: #27ae60;
+        }
+        button.danger {
+            background-color: #e74c3c;
+        }
+        button.danger:hover {
+            background-color: #c0392b;
+        }
+        .search-box {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 1rem;
+        }
+        .number-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .number-card {
+            background-color: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+            aspect-ratio: 1/1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .number-card.selected {
+            background-color: #2ecc71;
+            color: white;
+            border-color: #27ae60;
+        }
+        .number-card.marked {
+            background-color: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+        .number-card .number {
+            font-size: 1.2rem;
+        }
+        .number-card .number-name {
+            font-size: 0.7rem;
+            margin-top: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 90%;
+        }
+        .selected-list, .marked-list {
+            margin-top: 10px;
+        }
+        .selected-item, .marked-item {
+            background-color: #ecf0f1;
+            padding: 8px 12px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .marked-item {
+            background-color: #eaf2f8;
+        }
+        .item-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .action-btn {
+            padding: 5px 8px;
+            font-size: 0.8rem;
+            min-width: 0;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-title {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .console {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        .console-entry {
+            margin-bottom: 5px;
+            border-bottom: 1px solid #34495e;
+            padding-bottom: 5px;
+        }
+        .console-time {
+            color: #bdc3c7;
+            font-size: 0.8rem;
+        }
+        .console-message {
+            color: white;
+        }
+        .tab-container {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .tab {
+            padding: 10px 15px;
+            background-color: #ecf0f1;
+            border: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        .tab.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .password-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .password-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 300px;
+        }
+        @media (min-width: 600px) {
+            .number-grid {
+                grid-template-columns: repeat(10, 1fr);
+            }
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Selección de Números Móvil</h1>
+        
+        <div class="tab-container">
+            <button class="tab active" data-tab="main">Principal</button>
+            <button class="tab" data-tab="console">Consola</button>
+        </div>
+        
+        <div id="main-tab" class="tab-content active">
+            <div class="panel">
+                <div class="controls">
+                    <div class="control-group">
+                        <input type="text" class="search-box" placeholder="Buscar número..." id="search-input">
+                    </div>
+                    <div class="control-group">
+                        <button id="clear-search" class="secondary">Limpiar</button>
+                    </div>
+                </div>
+                
+                <div class="number-grid" id="number-grid">
+                    <!-- Los números del 1 al 100 se generarán aquí -->
+                </div>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <button id="name-btn" class="secondary">Asignar Nombres</button>
+                    </div>
+                    <div class="control-group">
+                        <button id="export-btn" class="secondary">Exportar</button>
+                    </div>
+                    <div class="control-group">
+                        <button id="save-btn">Guardar</button>
+                    </div>
+                    <div class="control-group">
+                        <button id="clear-btn" class="danger">Limpiar</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>Números Seleccionados (<span id="selected-count">0</span>)</h2>
+                <div class="selected-list" id="selected-list">
+                    <!-- Los números seleccionados aparecerán aquí -->
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>Números Marcados (<span id="marked-count">0</span>)</h2>
+                <div class="marked-list" id="marked-list">
+                    <!-- Los números marcados aparecerán aquí -->
+                </div>
+            </div>
+        </div>
+        
+        <div id="console-tab" class="tab-content">
+            <div class="panel">
+                <h2>Consola de Registro</h2>
+                <div class="console" id="console">
+                    <!-- Los registros de la consola aparecerán aquí -->
+                </div>
+                <div class="controls">
+                    <div class="control-group">
+                        <button id="clear-console" class="danger">Limpiar Consola</button>
+                    </div>
+                    <div class="control-group">
+                        <button id="export-console" class="secondary">Exportar Consola</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para asignar nombres -->
+    <div class="modal" id="name-modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Asignar Nombres</h3>
+            <div id="name-inputs">
+                <!-- Los inputs para nombres se generarán aquí -->
+            </div>
+            <div class="modal-actions">
+                <button id="cancel-names" class="danger">Cancelar</button>
+                <button id="save-names">Guardar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para exportar -->
+    <div class="modal" id="export-modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Exportar Datos</h3>
+            <div class="form-group">
+                <label for="export-format">Formato:</label>
+                <select id="export-format" class="search-box">
+                    <option value="csv">CSV (Excel)</option>
+                    <option value="json">JSON</option>
+                    <option value="text">Texto</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="export-data">Datos:</label>
+                <textarea id="export-data" rows="8" style="width: 100%;" readonly></textarea>
+            </div>
+            <div class="modal-actions">
+                <button id="copy-export" class="secondary">Copiar</button>
+                <button id="download-export">Descargar</button>
+                <button id="close-export" class="danger">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para contraseña -->
+    <div class="password-modal" id="password-modal">
+        <div class="password-content">
+            <h3 class="modal-title">Ingrese la contraseña</h3>
+            <div class="form-group">
+                <input type="password" id="password-input" class="search-box" placeholder="Contraseña">
+            </div>
+            <div class="modal-actions">
+                <button id="cancel-password" class="danger">Cancelar</button>
+                <button id="confirm-password">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let selectedNumbers = new Set();
+        let markedNumbers = new Map();
+        let numberNames = new Map();
+        let consoleLog = [];
+        const PASSWORD = "admin123"; // Cambia esta contraseña por una segura
+        let currentAction = null;
+        
+        // Elementos del DOM
+        const numberGrid = document.getElementById('number-grid');
+        const selectedList = document.getElementById('selected-list');
+        const markedList = document.getElementById('marked-list');
+        const consoleElement = document.getElementById('console');
+        const saveBtn = document.getElementById('save-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const nameBtn = document.getElementById('name-btn');
+        const exportBtn = document.getElementById('export-btn');
+        const searchInput = document.getElementById('search-input');
+        const clearSearchBtn = document.getElementById('clear-search');
+        const nameModal = document.getElementById('name-modal');
+        const nameInputs = document.getElementById('name-inputs');
+        const saveNamesBtn = document.getElementById('save-names');
+        const cancelNamesBtn = document.getElementById('cancel-names');
+        const exportModal = document.getElementById('export-modal');
+        const exportFormat = document.getElementById('export-format');
+        const exportData = document.getElementById('export-data');
+        const copyExportBtn = document.getElementById('copy-export');
+        const downloadExportBtn = document.getElementById('download-export');
+        const closeExportBtn = document.getElementById('close-export');
+        const selectedCount = document.getElementById('selected-count');
+        const markedCount = document.getElementById('marked-count');
+        const clearConsoleBtn = document.getElementById('clear-console');
+        const exportConsoleBtn = document.getElementById('export-console');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const passwordModal = document.getElementById('password-modal');
+        const passwordInput = document.getElementById('password-input');
+        const confirmPasswordBtn = document.getElementById('confirm-password');
+        const cancelPasswordBtn = document.getElementById('cancel-password');
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            generateNumberGrid();
+            loadSavedNumbers();
+            updateCounters();
+            renderConsole();
+            
+            // Configurar pestañas
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+                });
+            });
+        });
+
+        // Event listeners
+        saveBtn.addEventListener('click', saveSelection);
+        clearBtn.addEventListener('click', () => {
+            currentAction = 'clearSelection';
+            showPasswordModal();
+        });
+        nameBtn.addEventListener('click', showNameModal);
+        exportBtn.addEventListener('click', showExportModal);
+        clearSearchBtn.addEventListener('click', clearSearch);
+        searchInput.addEventListener('input', filterNumbers);
+        saveNamesBtn.addEventListener('click', saveNames);
+        cancelNamesBtn.addEventListener('click', () => nameModal.style.display = 'none');
+        exportFormat.addEventListener('change', updateExportData);
+        copyExportBtn.addEventListener('click', copyExportData);
+        downloadExportBtn.addEventListener('click', downloadExport);
+        closeExportBtn.addEventListener('click', () => exportModal.style.display = 'none');
+        clearConsoleBtn.addEventListener('click', () => {
+            currentAction = 'clearConsole';
+            showPasswordModal();
+        });
+        exportConsoleBtn.addEventListener('click', exportConsole);
+        confirmPasswordBtn.addEventListener('click', verifyPassword);
+        cancelPasswordBtn.addEventListener('click', () => passwordModal.style.display = 'none');
+
+        // Cerrar modales al hacer clic fuera
+        window.addEventListener('click', (e) => {
+            if (e.target === nameModal) nameModal.style.display = 'none';
+            if (e.target === exportModal) exportModal.style.display = 'none';
+            if (e.target === passwordModal) passwordModal.style.display = 'none';
+        });
+
+        // Mostrar modal de contraseña
+        function showPasswordModal() {
+            passwordInput.value = '';
+            passwordModal.style.display = 'flex';
+        }
+
+        // Verificar contraseña
+        function verifyPassword() {
+            if (passwordInput.value === PASSWORD) {
+                passwordModal.style.display = 'none';
+                switch(currentAction) {
+                    case 'clearSelection':
+                        clearSelection();
+                        break;
+                    case 'clearConsole':
+                        clearConsole();
+                        break;
+                }
+                currentAction = null;
+                logToConsole('Acción protegida realizada', 'success');
+            } else {
+                alert('Contraseña incorrecta');
+                logToConsole('Intento fallido de acción protegida', 'error');
+            }
+        }
+
+        // Generar la cuadrícula de números
+        function generateNumberGrid() {
+            numberGrid.innerHTML = '';
+            
+            for (let i = 1; i <= 100; i++) {
+                const numberCard = document.createElement('div');
+                numberCard.className = 'number-card';
+                
+                const numberElement = document.createElement('div');
+                numberElement.className = 'number';
+                numberElement.textContent = i;
+                
+                const nameElement = document.createElement('div');
+                nameElement.className = 'number-name';
+                nameElement.textContent = numberNames.get(i) || '';
+                
+                numberCard.appendChild(numberElement);
+                numberCard.appendChild(nameElement);
+                numberCard.dataset.number = i;
+                
+                numberCard.addEventListener('click', () => {
+                    toggleNumberSelection(i);
+                });
+                
+                numberCard.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    numberCard.classList.add('touched');
+                }, { passive: false });
+                
+                numberCard.addEventListener('touchend', () => {
+                    numberCard.classList.remove('touched');
+                    toggleNumberSelection(i);
+                });
+                
+                numberGrid.appendChild(numberCard);
+            }
+        }
+
+        // Alternar selección de número
+        function toggleNumberSelection(number) {
+            if (selectedNumbers.has(number)) {
+                selectedNumbers.delete(number);
+                logToConsole(`Número ${number} deseleccionado`);
+            } else {
+                selectedNumbers.add(number);
+                logToConsole(`Número ${number} seleccionado`);
+            }
+            
+            updateNumberCards();
+            updateSelectedList();
+            updateCounters();
+        }
+
+        // Actualizar apariencia de las tarjetas de número
+        function updateNumberCards() {
+            document.querySelectorAll('.number-card').forEach(card => {
+                const number = parseInt(card.dataset.number);
+                card.classList.remove('selected', 'marked');
+                
+                if (selectedNumbers.has(number)) {
+                    card.classList.add('selected');
+                } else if (markedNumbers.has(number)) {
+                    card.classList.add('marked');
+                }
+                
+                // Actualizar nombre si existe
+                const nameElement = card.querySelector('.number-name');
+                nameElement.textContent = numberNames.get(number) || '';
+            });
+        }
+
+        // Actualizar lista de seleccionados
+        function updateSelectedList() {
+            selectedList.innerHTML = '';
+            
+            Array.from(selectedNumbers).sort((a, b) => a - b).forEach(number => {
+                const item = document.createElement('div');
+                item.className = 'selected-item';
+                
+                const itemText = document.createElement('div');
+                itemText.textContent = `Número ${number}: ${numberNames.get(number) || 'Sin nombre'}`;
+                
+                const itemActions = document.createElement('div');
+                itemActions.className = 'item-actions';
+                
+                const markBtn = document.createElement('button');
+                markBtn.className = 'action-btn secondary';
+                markBtn.textContent = 'Marcar';
+                markBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    markNumber(number);
+                });
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'action-btn danger';
+                removeBtn.textContent = 'Quitar';
+                removeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectedNumbers.delete(number);
+                    updateSelectedList();
+                    updateNumberCards();
+                    updateCounters();
+                    logToConsole(`Número ${number} quitado de seleccionados`);
+                });
+                
+                itemActions.appendChild(markBtn);
+                itemActions.appendChild(removeBtn);
+                item.appendChild(itemText);
+                item.appendChild(itemActions);
+                selectedList.appendChild(item);
+            });
+        }
+
+        // Marcar número
+        function markNumber(number) {
+            if (!markedNumbers.has(number)) {
+                markedNumbers.set(number, new Date().toLocaleString());
+                selectedNumbers.delete(number);
+                updateMarkedList();
+                updateNumberCards();
+                updateSelectedList();
+                updateCounters();
+                logToConsole(`Número ${number} marcado`);
+            }
+        }
+
+        // Actualizar lista de marcados
+        function updateMarkedList() {
+            markedList.innerHTML = '';
+            
+            Array.from(markedNumbers.entries()).sort((a, b) => a[0] - b[0]).forEach(([number, timestamp]) => {
+                const item = document.createElement('div');
+                item.className = 'marked-item';
+                
+                const itemText = document.createElement('div');
+                itemText.textContent = `Número ${number}: ${numberNames.get(number) || 'Sin nombre'} (${timestamp})`;
+                
+                const itemActions = document.createElement('div');
+                itemActions.className = 'item-actions';
+                
+                const unmarkBtn = document.createElement('button');
+                unmarkBtn.className = 'action-btn secondary';
+                unmarkBtn.textContent = 'Desmarcar';
+                unmarkBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    markedNumbers.delete(number);
+                    updateMarkedList();
+                    updateNumberCards();
+                    updateCounters();
+                    logToConsole(`Número ${number} desmarcado`);
+                });
+                
+                itemActions.appendChild(unmarkBtn);
+                item.appendChild(itemText);
+                item.appendChild(itemActions);
+                markedList.appendChild(item);
+            });
+        }
+
+        // Actualizar contadores
+        function updateCounters() {
+            selectedCount.textContent = selectedNumbers.size;
+            markedCount.textContent = markedNumbers.size;
+        }
+
+        // Mostrar modal para asignar nombres
+        function showNameModal() {
+            nameInputs.innerHTML = '';
+            
+            Array.from(selectedNumbers).sort((a, b) => a - b).forEach(number => {
+                const group = document.createElement('div');
+                group.className = 'form-group';
+                
+                const label = document.createElement('label');
+                label.textContent = `Número ${number}:`;
+                
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = numberNames.get(number) || '';
+                input.dataset.number = number;
+                input.placeholder = 'Nombre del comprador';
+                
+                group.appendChild(label);
+                group.appendChild(input);
+                nameInputs.appendChild(group);
+            });
+            
+            nameModal.style.display = 'flex';
+        }
+
+        // Guardar nombres
+        function saveNames() {
+            nameInputs.querySelectorAll('input').forEach(input => {
+                const number = parseInt(input.dataset.number);
+                const name = input.value.trim();
+                
+                if (name) {
+                    numberNames.set(number, name);
+                    logToConsole(`Nombre "${name}" asignado al número ${number}`);
+                } else {
+                    numberNames.delete(number);
+                    logToConsole(`Nombre eliminado del número ${number}`);
+                }
+            });
+            
+            updateNumberCards();
+            updateSelectedList();
+            updateMarkedList();
+            nameModal.style.display = 'none';
+        }
+
+        // Mostrar modal de exportación
+        function showExportModal() {
+            updateExportData();
+            exportModal.style.display = 'flex';
+        }
+
+        // Actualizar datos de exportación según formato seleccionado
+        function updateExportData() {
+            const format = exportFormat.value;
+            let data = '';
+            
+            switch(format) {
+                case 'csv':
+                    data = 'Número,Nombre,Estado,Fecha\n';
+                    // Seleccionados
+                    Array.from(selectedNumbers).sort((a, b) => a - b).forEach(number => {
+                        data += `${number},"${numberNames.get(number) || ''}","Seleccionado",\n`;
+                    });
+                    // Marcados
+                    Array.from(markedNumbers.entries()).sort((a, b) => a[0] - b[0]).forEach(([number, timestamp]) => {
+                        data += `${number},"${numberNames.get(number) || ''}","Marcado","${timestamp}"\n`;
+                    });
+                    break;
+                    
+                case 'json':
+                    const exportObj = {
+                        selected: Array.from(selectedNumbers).map(number => ({
+                            number,
+                            name: numberNames.get(number) || '',
+                            status: 'selected'
+                        })),
+                        marked: Array.from(markedNumbers.entries()).map(([number, timestamp]) => ({
+                            number,
+                            name: numberNames.get(number) || '',
+                            status: 'marked',
+                            timestamp
+                        }))
+                    };
+                    data = JSON.stringify(exportObj, null, 2);
+                    break;
+                    
+                case 'text':
+                    data = 'NÚMEROS SELECCIONADOS:\n';
+                    Array.from(selectedNumbers).sort((a, b) => a - b).forEach(number => {
+                        data += `${number}: ${numberNames.get(number) || 'Sin nombre'}\n`;
+                    });
+                    
+                    data += '\nNÚMEROS MARCADOS:\n';
+                    Array.from(markedNumbers.entries()).sort((a, b) => a[0] - b[0]).forEach(([number, timestamp]) => {
+                        data += `${number}: ${numberNames.get(number) || 'Sin nombre'} (${timestamp})\n`;
+                    });
+                    break;
+            }
+            
+            exportData.value = data;
+        }
+
+        // Copiar datos de exportación
+        function copyExportData() {
+            exportData.select();
+            document.execCommand('copy');
+            logToConsole('Datos copiados al portapapeles', 'success');
+        }
+
+        // Descargar datos exportados
+        function downloadExport() {
+            const format = exportFormat.value;
+            const data = exportData.value;
+            let mimeType, extension;
+            
+            switch(format) {
+                case 'csv':
+                    mimeType = 'text/csv';
+                    extension = 'csv';
+                    break;
+                case 'json':
+                    mimeType = 'application/json';
+                    extension = 'json';
+                    break;
+                case 'text':
+                    mimeType = 'text/plain';
+                    extension = 'txt';
+                    break;
+            }
+            
+            const blob = new Blob([data], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `numeros-rifa-${new Date().toISOString().slice(0, 10)}.${extension}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            logToConsole(`Datos exportados como ${format}`, 'success');
+        }
+
+        // Limpiar búsqueda
+        function clearSearch() {
+            searchInput.value = '';
+            filterNumbers();
+        }
+
+        // Filtrar números
+        function filterNumbers() {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            document.querySelectorAll('.number-card').forEach(card => {
+                const number = card.dataset.number;
+                const name = numberNames.get(parseInt(number)) || '';
+                
+                if (number.includes(searchTerm) || name.toLowerCase().includes(searchTerm)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Guardar selección en IndexedDB
+        function saveSelection() {
+            const data = {
+                selected: Array.from(selectedNumbers),
+                marked: Array.from(markedNumbers.entries()),
+                names: Array.from(numberNames.entries()),
+                timestamp: new Date().toISOString()
+            };
+            
+            // Usando localStorage como alternativa simple
+            localStorage.setItem('rifaAppData', JSON.stringify(data));
+            
+            logToConsole('Datos guardados localmente', 'success');
+        }
+
+        // Cargar números guardados desde IndexedDB
+        function loadSavedNumbers() {
+            // Usando localStorage como alternativa simple
+            const savedData = localStorage.getItem('rifaAppData');
+            
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    
+                    selectedNumbers = new Set(data.selected || []);
+                    
+                    markedNumbers = new Map();
+                    if (data.marked) {
+                        data.marked.forEach(([number, timestamp]) => {
+                            markedNumbers.set(number, timestamp);
+                        });
+                    }
+                    
+                    numberNames = new Map();
+                    if (data.names) {
+                        data.names.forEach(([number, name]) => {
+                            numberNames.set(number, name);
+                        });
+                    }
+                    
+                    updateNumberCards();
+                    updateSelectedList();
+                    updateMarkedList();
+                    updateCounters();
+                    
+                    logToConsole('Datos cargados desde almacenamiento local');
+                } catch (e) {
+                    logToConsole('Error al cargar datos guardados', 'error');
+                    console.error(e);
+                }
+            }
+        }
+
+        // Limpiar selección
+        function clearSelection() {
+            selectedNumbers.clear();
+            markedNumbers.clear();
+            numberNames.clear();
+            
+            updateNumberCards();
+            updateSelectedList();
+            updateMarkedList();
+            updateCounters();
+            
+            logToConsole('Todos los datos han sido limpiados', 'warning');
+        }
+
+        // Limpiar consola
+        function clearConsole() {
+            consoleLog = [];
+            renderConsole();
+            logToConsole('Consola limpiada', 'warning');
+        }
+
+        // Exportar consola
+        function exportConsole() {
+            const data = consoleLog.map(entry => {
+                return `[${entry.time}] ${entry.message}`;
+            }).join('\n');
+            
+            const blob = new Blob([data], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `consola-rifa-${new Date().toISOString().slice(0, 10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            logToConsole('Consola exportada', 'success');
+        }
+
+        // Registrar en consola
+        function logToConsole(message, type = 'info') {
+            const timestamp = new Date();
+            const timeStr = timestamp.toLocaleTimeString();
+            
+            consoleLog.push({
+                time: timeStr,
+                message: message,
+                type: type
+            });
+            
+            renderConsole();
+        }
+
+        // Renderizar consola
+        function renderConsole() {
+            consoleElement.innerHTML = '';
+            
+            consoleLog.forEach(entry => {
+                const entryElement = document.createElement('div');
+                entryElement.className = 'console-entry';
+                
+                const timeElement = document.createElement('div');
+                timeElement.className = 'console-time';
+                timeElement.textContent = entry.time;
+                
+                const messageElement = document.createElement('div');
+                messageElement.className = 'console-message';
+                messageElement.textContent = entry.message;
+                
+                if (entry.type === 'error') {
+                    messageElement.style.color = '#e74c3c';
+                } else if (entry.type === 'success') {
+                    messageElement.style.color = '#2ecc71';
+                } else if (entry.type === 'warning') {
+                    messageElement.style.color = '#f39c12';
+                }
+                
+                entryElement.appendChild(timeElement);
+                entryElement.appendChild(messageElement);
+                consoleElement.appendChild(entryElement);
+            });
+            
+            // Auto-scroll to bottom
+            consoleElement.scrollTop = consoleElement.scrollHeight;
+        }
+    </script>
+</body>
+</html>
